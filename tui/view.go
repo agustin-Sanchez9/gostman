@@ -154,7 +154,8 @@ func (m model) View() string {
 	respBox := respPanel.Render(respSection)
 
 	// Main content: side-by-side panels
-	mainContent := lipgloss.JoinHorizontal(lipgloss.Top, reqBox, "  ", respBox)
+	mainContent := lipgloss.JoinHorizontal(lipgloss.Top, reqBox, " ", respBox)
+	mainContent = lipgloss.PlaceHorizontal(m.width, lipgloss.Center, mainContent)
 
 	// Status bar with mode indicator
 	var modeIndicator string
@@ -176,6 +177,8 @@ func (m model) View() string {
 
 	statusText := lipgloss.JoinHorizontal(lipgloss.Left, modeIndicator, " ", helpText)
 	statusBar := statusBarStyle.Width(m.width).Render(statusText)
+
+	topBar = lipgloss.PlaceHorizontal(m.width, lipgloss.Center, topBar)
 
 	return lipgloss.JoinVertical(lipgloss.Left, topBar, mainContent, statusBar)
 }
