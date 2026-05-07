@@ -83,7 +83,7 @@ func (m model) View() string {
 		methodStr = methodFocusStyle.Render(httpMethods[m.methodIndex])
 	}
 
-	urlStr := m.urlInput.View()
+	urlStr := lipgloss.NewStyle().Width(m.urlInput.Width).Render(m.urlInput.View())
 	if m.focus == urlArea {
 		urlStr = panelFocusStyle.Render(urlStr)
 	} else {

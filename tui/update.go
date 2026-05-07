@@ -301,11 +301,12 @@ func (m *model) resizeComponents() {
 	if contentHeight < 4 {
 		contentHeight = 4
 	}
-
-	m.urlInput.Width = m.width - 25
-	if m.urlInput.Width < 10 {
-		m.urlInput.Width = 10
+	
+	urlWidth := m.width - 25
+	if urlWidth < 10 {
+		urlWidth = 10
 	}
+	m.urlInput.Width = urlWidth
 
 	m.reqBody.SetWidth(contentWidth)
 	m.reqBody.SetHeight(contentHeight)

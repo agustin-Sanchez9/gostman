@@ -62,6 +62,7 @@ type model struct {
 func InitialModel() model {
 	urlInput := textinput.New()
 	urlInput.Placeholder = "Enter URL..."
+	urlInput.Width = 40
 
 	reqBody := textarea.New()
 	reqBody.Placeholder = "{\n  \n}"
