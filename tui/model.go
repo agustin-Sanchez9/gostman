@@ -41,6 +41,9 @@ type model struct {
 	respBody    viewport.Model
 	respHeaders viewport.Model
 
+	respBodyText    string
+	respHeadersText string
+
 	reqTab  tabType
 	respTab tabType
 	focus   focusArea

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/agustin-Sanchez9/gostman/api"
+	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -13,10 +14,23 @@ type sendRequestMsg struct {
 	err  error
 }
 
+type copyMsg struct {
+	err error
+}
+
 func sendRequest(method, url, headers, body string) tea.Cmd {
 	return func() tea.Msg {
 		resp, err := api.SendRequest(method, url, headers, body)
 		return sendRequestMsg{resp: resp, err: err}
+	}
+}
+
+func copyToClipboard(text string) tea.Cmd {
+	return func() tea.Msg {
+		if err := clipboard.WriteAll(text); err != nil {
+			return copyMsg{err: err}
+		}
+		return copyMsg{}
 	}
 }
 
@@ -41,6 +55,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.mode = normalMode
 				m.blurInputs()
 				return m, nil
+			}
+			if msg.Type == tea.KeyTab {
+				return m.passToInput(tea.KeyMsg{
+					Type:  tea.KeyRunes,
+					Runes: []rune{'\t'},
+				})
 			}
 			return m.passToInput(msg)
 		}
@@ -74,6 +94,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "f":
 			m.formatRequestBody()
 			return m, nil
+		case "c":
+			cmd := m.copyFocused()
+			if cmd != nil {
+				return m, cmd
+			}
+			return m, nil
 		}
 
 		// Method navigation with arrow keys
@@ -101,13 +127,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.statusText = ""
 			m.respBody.SetContent("")
 			m.respHeaders.SetContent("")
+			m.respBodyText = ""
+			m.respHeadersText = ""
 		} else {
 			m.statusCode = msg.resp.StatusCode
 			m.statusText = msg.resp.Status
+			m.respBodyText = msg.resp.Body
+			m.respHeadersText = msg.resp.Headers
 			m.respBody.SetContent(msg.resp.Body)
 			m.respBody.GotoTop()
 			m.respHeaders.SetContent(msg.resp.Headers)
 			m.respHeaders.GotoTop()
+		}
+		return m, nil
+
+	case copyMsg:
+		if msg.err != nil {
+			m.errMsg = msg.err.Error()
+		} else {
+			m.errMsg = ""
 		}
 		return m, nil
 	}
@@ -211,6 +249,32 @@ func (m *model) formatRequestBody() {
 	if err := json.Indent(&prettyJSON, []byte(content), "", "  "); err == nil {
 		m.reqBody.SetValue(prettyJSON.String())
 	}
+}
+
+func (m *model) copyFocused() tea.Cmd {
+	var text string
+	switch m.focus {
+	case urlArea:
+		text = m.urlInput.Value()
+	case reqArea:
+		if m.reqTab == bodyTab {
+			text = m.reqBody.Value()
+		} else {
+			text = m.reqHeaders.Value()
+		}
+	case respArea:
+		if m.respTab == bodyTab {
+			text = m.respBodyText
+		} else {
+			text = m.respHeadersText
+		}
+	case methodArea:
+		text = httpMethods[m.methodIndex]
+	}
+	if text == "" {
+		return nil
+	}
+	return copyToClipboard(text)
 }
 
 func (m *model) resizeComponents() {
