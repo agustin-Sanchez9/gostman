@@ -2,12 +2,17 @@ package tui
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
+	"time"
 
 	"github.com/agustin-Sanchez9/gostman/api"
 	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea"
 )
+
+type clearErrMsg struct{}
 
 type sendRequestMsg struct {
 	resp *api.Response
@@ -18,11 +23,17 @@ type copyMsg struct {
 	err error
 }
 
-func sendRequest(method, url, headers, body string) tea.Cmd {
+func sendRequest(ctx context.Context, method, url, headers, body string) tea.Cmd {
 	return func() tea.Msg {
-		resp, err := api.SendRequest(method, url, headers, body)
+		resp, err := api.SendRequest(ctx, method, url, headers, body)
 		return sendRequestMsg{resp: resp, err: err}
 	}
+}
+
+func clearErrorAfter(d time.Duration) tea.Cmd {
+	return tea.Tick(d, func(t time.Time) tea.Msg {
+		return clearErrMsg{}
+	})
 }
 
 func copyToClipboard(text string) tea.Cmd {
@@ -47,6 +58,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Always allow quit
 		if msg.Type == tea.KeyCtrlC || msg.String() == "q" {
 			return m, tea.Quit
+		}
+
+		// Cancel in-flight request
+		if m.loading && msg.Type == tea.KeyEsc {
+			if m.cancelFunc != nil {
+				m.cancelFunc()
+			}
+			m.loading = false
+			m.errMsg = "Request cancelled"
+			return m, clearErrorAfter(2 * time.Second)
 		}
 
 		// Input Mode: only Esc exits; everything else goes to the focused input
@@ -122,6 +143,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case sendRequestMsg:
 		m.loading = false
 		if msg.err != nil {
+			if errors.Is(msg.err, context.Canceled) {
+				return m, nil
+			}
 			m.errMsg = msg.err.Error()
 			m.statusCode = 0
 			m.statusText = ""
@@ -147,6 +171,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.errMsg = ""
 		}
+		return m, nil
+
+	case clearErrMsg:
+		m.errMsg = ""
 		return m, nil
 	}
 
@@ -234,7 +262,9 @@ func (m *model) triggerSend() tea.Cmd {
 	m.loading = true
 	m.errMsg = ""
 	method := httpMethods[m.methodIndex]
-	return sendRequest(method, m.urlInput.Value(), m.reqHeaders.Value(), m.reqBody.Value())
+	ctx, cancel := context.WithCancel(context.Background())
+	m.cancelFunc = cancel
+	return sendRequest(ctx, method, m.urlInput.Value(), m.reqHeaders.Value(), m.reqBody.Value())
 }
 
 func (m *model) formatRequestBody() {

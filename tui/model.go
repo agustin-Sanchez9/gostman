@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"context"
+
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -53,6 +55,7 @@ type model struct {
 	statusText string
 	loading    bool
 	errMsg     string
+	cancelFunc context.CancelFunc
 
 	width  int
 	height int

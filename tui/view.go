@@ -172,7 +172,7 @@ func (m model) View() string {
 	if m.errMsg != "" {
 		helpText = errorStyle.Render("Error: " + m.errMsg)
 	} else if m.loading {
-		helpText = "Sending request..."
+		helpText = "Sending request... (Esc to cancel)"
 	}
 
 	statusText := lipgloss.JoinHorizontal(lipgloss.Left, modeIndicator, " ", helpText)

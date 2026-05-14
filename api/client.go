@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -20,7 +21,7 @@ type Response struct {
 
 // SendRequest performs an HTTP request with the given parameters.
 // Headers are provided in bulk edit format: one "Key: Value" per line.
-func SendRequest(method, url, headers, body string) (*Response, error) {
+func SendRequest(ctx context.Context, method, url, headers, body string) (*Response, error) {
 	// Parse bulk headers
 	headerMap := make(http.Header)
 	lines := strings.Split(headers, "\n")
@@ -43,7 +44,7 @@ func SendRequest(method, url, headers, body string) (*Response, error) {
 		bodyReader = strings.NewReader(body)
 	}
 
-	req, err := http.NewRequest(method, url, bodyReader)
+	req, err := http.NewRequestWithContext(ctx, method, url, bodyReader)
 	if err != nil {
 		return nil, err
 	}
