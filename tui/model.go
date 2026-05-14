@@ -51,11 +51,13 @@ type model struct {
 	focus   focusArea
 	mode    modeType
 
-	statusCode int
-	statusText string
-	loading    bool
-	errMsg     string
-	cancelFunc context.CancelFunc
+	statusCode     int
+	statusText     string
+	respDurationMs int64
+	respSizeKB     float64
+	loading        bool
+	errMsg         string
+	cancelFunc     context.CancelFunc
 
 	width  int
 	height int

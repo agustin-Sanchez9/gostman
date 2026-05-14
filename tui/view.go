@@ -138,6 +138,13 @@ func (m model) View() string {
 		statusStr = style.Render(fmt.Sprintf("%d %s", m.statusCode, m.statusText))
 	}
 
+	telemetryStr := ""
+	if m.statusCode > 0 {
+		telemetryStr = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#A0A0A0")).
+			Render(fmt.Sprintf("%.2f kb • %d ms", m.respSizeKB, m.respDurationMs))
+	}
+
 	respTabs := m.renderTabs(m.respTab)
 	var respContent string
 	if m.respTab == bodyTab {
@@ -148,7 +155,11 @@ func (m model) View() string {
 
 	respTitle := "Response"
 	if statusStr != "" {
-		respTitle = fmt.Sprintf("Response — %s", statusStr)
+		if telemetryStr != "" {
+			respTitle = fmt.Sprintf("Response — %s  %s", statusStr, telemetryStr)
+		} else {
+			respTitle = fmt.Sprintf("Response — %s", statusStr)
+		}
 	}
 	respSection := lipgloss.JoinVertical(lipgloss.Left, respTitle, respTabs, respContent)
 	respBox := respPanel.Render(respSection)

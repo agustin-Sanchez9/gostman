@@ -149,6 +149,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.errMsg = msg.err.Error()
 			m.statusCode = 0
 			m.statusText = ""
+			m.respDurationMs = 0
+			m.respSizeKB = 0
 			m.respBody.SetContent("")
 			m.respHeaders.SetContent("")
 			m.respBodyText = ""
@@ -156,6 +158,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.statusCode = msg.resp.StatusCode
 			m.statusText = msg.resp.Status
+			m.respDurationMs = msg.resp.DurationMs
+			m.respSizeKB = msg.resp.SizeKB
 			m.respBodyText = msg.resp.Body
 			m.respHeadersText = msg.resp.Headers
 			m.respBody.SetContent(msg.resp.Body)

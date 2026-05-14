@@ -17,6 +17,8 @@ type Response struct {
 	Status     string
 	Headers    string
 	Body       string
+	DurationMs int64
+	SizeKB     float64
 }
 
 // SendRequest performs an HTTP request with the given parameters.
@@ -59,6 +61,7 @@ func SendRequest(ctx context.Context, method, url, headers, body string) (*Respo
 		Timeout: 30 * time.Second,
 	}
 
+	start := time.Now()
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -66,9 +69,12 @@ func SendRequest(ctx context.Context, method, url, headers, body string) (*Respo
 	defer resp.Body.Close()
 
 	respBody, err := io.ReadAll(resp.Body)
+	durationMs := time.Since(start).Milliseconds()
 	if err != nil {
 		return nil, err
 	}
+
+	sizeKB := float64(len(respBody)) / 1024.0
 
 	// Pretty-print JSON response bodies when possible
 	respBodyStr := string(respBody)
@@ -93,5 +99,7 @@ func SendRequest(ctx context.Context, method, url, headers, body string) (*Respo
 		Status:     resp.Status,
 		Headers:    headerStr.String(),
 		Body:       respBodyStr,
+		DurationMs: durationMs,
+		SizeKB:     sizeKB,
 	}, nil
 }
