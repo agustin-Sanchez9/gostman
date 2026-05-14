@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/agustin-Sanchez9/gostman/api"
@@ -263,12 +264,17 @@ func (m *model) triggerSend() tea.Cmd {
 	if m.loading || m.urlInput.Value() == "" {
 		return nil
 	}
+	url := m.urlInput.Value()
+	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+		url = "https://" + url
+		m.urlInput.SetValue(url)
+	}
 	m.loading = true
 	m.errMsg = ""
 	method := httpMethods[m.methodIndex]
 	ctx, cancel := context.WithCancel(context.Background())
 	m.cancelFunc = cancel
-	return sendRequest(ctx, method, m.urlInput.Value(), m.reqHeaders.Value(), m.reqBody.Value())
+	return sendRequest(ctx, method, url, m.reqHeaders.Value(), m.reqBody.Value())
 }
 
 func (m *model) formatRequestBody() {
