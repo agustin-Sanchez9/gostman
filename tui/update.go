@@ -122,6 +122,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, cmd
 			}
 			return m, nil
+		case "X":
+			m.clearAllInputs()
+			return m, nil
 		}
 
 		// Method navigation with arrow keys
@@ -208,6 +211,12 @@ func (m *model) blurInputs() {
 	m.urlInput.Blur()
 	m.reqBody.Blur()
 	m.reqHeaders.Blur()
+}
+
+func (m *model) clearAllInputs() {
+	m.urlInput.SetValue("")
+	m.reqBody.SetValue("")
+	m.reqHeaders.SetValue("")
 }
 
 func (m *model) passToInput(msg tea.Msg) (tea.Model, tea.Cmd) {

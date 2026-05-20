@@ -177,7 +177,7 @@ func (m model) View() string {
 		helpText = "Esc: normal mode"
 	} else {
 		modeIndicator = normalModeStyle.Render(" -- NORMAL -- ")
-		helpText = "Tab: cycle focus | b/h: tabs | s/r: send | f: format | c: copy | i: input | q: quit"
+		helpText = "Tab: cycle focus | b/h: tabs | s/r: send | f: format | c: copy | X: clear | i: input | q: quit"
 	}
 
 	if m.errMsg != "" {
